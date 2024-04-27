@@ -55,7 +55,7 @@ public class EmployeeManagementGUI extends JFrame {
         add(new JLabel("Search:"));
         add(searchField);
         add(searchButton);
-        add(new JLabel(""))
+       
         add(new JLabel("Add Name:"));
         add(addNameField);
         add(addButton);
