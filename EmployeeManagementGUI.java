@@ -8,18 +8,17 @@ import java.sql.*;
 
 public class EmployeeManagementGUI extends JFrame {
     private JTextField searchField;
-    private JTextField addNameField;
-    private JTextField updateNameField;
     private JButton searchButton;
     private JButton addButton;
     private JButton updateButton;
     private JTextArea resultArea;
+    private JTextField updateNameField;
 
     private Connection connection;
-    private JTextComponent addLnameField;
     private JTextComponent addFnameField;
-    private JTextComponent addHireDateField;
+    private JTextComponent addLnameField;
     private JTextComponent addEmailField;
+    private JTextComponent addHireDateField;
     private JTextComponent addSalaryField;
     private JTextComponent addSSNField;
 
@@ -33,18 +32,17 @@ public class EmployeeManagementGUI extends JFrame {
         // Add action listeners for the buttons
         addActionListeners();
     }
-   
+
     private void createComponents() {
         // Layout and components setup
         searchField = new JTextField(20);
-        addNameField = new JTextField(20);
+        addFnameField = new JTextField(20);
         updateNameField = new JTextField(20);
-        addFnameField = new JTextField(20); // Add this line
-        addLnameField = new JTextField(20); // Add this line
-        addEmailField = new JTextField(20); // Add this line
-        addHireDateField = new JTextField(20); // Add this line
-        addSalaryField = new JTextField(20); // Add this line
-        addSSNField = new JTextField(20); // Add this line
+        addLnameField = new JTextField(20);
+        addEmailField = new JTextField(20);
+        addHireDateField = new JTextField(20);
+        addSalaryField = new JTextField(20);
+        addSSNField = new JTextField(20);
         searchButton = new JButton("Search");
         addButton = new JButton("Add Employee");
         updateButton = new JButton("Update Employee");
@@ -55,13 +53,24 @@ public class EmployeeManagementGUI extends JFrame {
         add(new JLabel("Search:"));
         add(searchField);
         add(searchButton);
-       
-        add(new JLabel("Add Name:"));
-        add(addNameField);
+
+        add(new JLabel("First Name:"));
+        add(addFnameField);
+        add(new JLabel("Last Name:"));
+        add(addLnameField);
+        add(new JLabel("Email:"));
+        add(addEmailField);
+        add(new JLabel("Hire Date:"));
+        add(addHireDateField);
+        add(new JLabel("Salary:"));
+        add(addSalaryField);
+        add(new JLabel("SSN:"));
+        add(addSSNField);
         add(addButton);
-        add(new JLabel("Update Name:"));
+
         add(updateNameField);
         add(updateButton);
+
         add(new JScrollPane(resultArea));
     }
 
@@ -69,7 +78,7 @@ public class EmployeeManagementGUI extends JFrame {
         try {
             String url = "jdbc:mysql://localhost:3306/employeeData";
             String user = "root";
-            String password = "Shwetaben_0627";
+            String password = "YourPasswordHere";
 
             // Ensure the JDBC driver is loaded
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -86,7 +95,6 @@ public class EmployeeManagementGUI extends JFrame {
         }
     }
 
-
     private void addActionListeners() {
         searchButton.addActionListener(new ActionListener() {
             @Override
@@ -101,13 +109,6 @@ public class EmployeeManagementGUI extends JFrame {
                 addEmployee();
             }
         });
-
-        updateButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                updateEmployee();
-            }
-        });
     }
 
     private void performSearch() {
@@ -117,44 +118,45 @@ public class EmployeeManagementGUI extends JFrame {
             resultArea.setText("Please enter a search term.");
             return;
         }
-    
+
         try {
-            // Create a PreparedStatement with a parameterized query to avoid SQL injection
-            // String sql = "SELECT * FROM employees WHERE empid LIKE CONCAT('%', ?, '%')";
+            // Decide on a query based on the input type; search by ID or name
             String sql;
-            if (searchTerm.length() == 1 && Character.isDigit(searchTerm.charAt(0))) {
-                // Search for exact matches if the search term is a single digit
+            if (searchTerm.matches("\\d+")) { // Checks if the searchTerm is numeric
                 sql = "SELECT * FROM employees WHERE empid = ?";
             } else {
-                // Use LIKE with wildcards for other search terms
-                sql = "SELECT * FROM employees WHERE empid LIKE CONCAT('%', ?, '%')";
+                // Use LIKE for name searches
+                sql = "SELECT * FROM employees WHERE Fname LIKE CONCAT('%', ?, '%') OR Lname LIKE CONCAT('%', ?, '%')";
             }
 
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, searchTerm);
-    
+            if (!searchTerm.matches("\\d+")) {
+                preparedStatement.setString(2, searchTerm); // Set the second parameter for name search
+            }
+
             // Execute the query
             ResultSet resultSet = preparedStatement.executeQuery();
-    
+
             // Process the results
-            StringBuilder resultText = new StringBuilder();
-            resultText.append("Search results:\n");
-    
+            StringBuilder resultText = new StringBuilder("Search results:\n");
+            boolean found = false;
             while (resultSet.next()) {
                 int id = resultSet.getInt("empid");
-                String name = resultSet.getString("Fname");
-                // Add more columns as needed
-    
-                resultText.append("ID: ").append(id).append(", Name: ").append(name).append("\n");
-                // Append more columns as needed
+                String fname = resultSet.getString("Fname");
+                String lname = resultSet.getString("Lname");
+                // Add more fields as needed
+
+                resultText.append("ID: ").append(id).append(", First Name: ").append(fname).append(", Last Name: ").append(lname).append("\n");
+                found = true;
             }
-    
-            if (resultText.length() == 0) {
+
+            if (!found) {
                 resultText.append("No results found.");
             }
-    
+
             resultArea.setText(resultText.toString());
-    
+
             // Close the ResultSet and PreparedStatement
             resultSet.close();
             preparedStatement.close();
@@ -169,17 +171,24 @@ public class EmployeeManagementGUI extends JFrame {
         String lname = addLnameField.getText().trim();
         String email = addEmailField.getText().trim();
         String hireDate = addHireDateField.getText().trim();
-        double salary = Double.parseDouble(addSalaryField.getText().trim());
+        String salaryText = addSalaryField.getText().trim();
         String ssn = addSSNField.getText().trim();
-    
-        if (fname.isEmpty() || lname.isEmpty() || email.isEmpty() || hireDate.isEmpty() || ssn.isEmpty()) {
+
+        if (fname.isEmpty() || lname.isEmpty() || email.isEmpty() || hireDate.isEmpty() || salaryText.isEmpty() || ssn.isEmpty()) {
             resultArea.setText("Please enter all required information for the new employee.");
             return;
         }
-        
-    
+
+        double salary;
         try {
-            String sql = "INSERT INTO employee (Fname, Lname, email, HireDate, Salary, SSN) VALUES (?, ?, ?, ?, ?, ?)";
+            salary = Double.parseDouble(salaryText);
+        } catch (NumberFormatException ex) {
+            resultArea.setText("Please enter a valid salary.");
+            return;
+        }
+
+        try {
+            String sql = "INSERT INTO employees (Fname, Lname, email, HireDate, Salary, SSN) VALUES (?, ?, ?, ?, ?, ?)";
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, fname);
             preparedStatement.setString(2, lname);
@@ -187,22 +196,20 @@ public class EmployeeManagementGUI extends JFrame {
             preparedStatement.setString(4, hireDate);
             preparedStatement.setDouble(5, salary);
             preparedStatement.setString(6, ssn);
-    
+
             int rowsAffected = preparedStatement.executeUpdate();
             if (rowsAffected > 0) {
                 resultArea.setText("Employee added successfully.");
             } else {
                 resultArea.setText("Failed to add employee.");
             }
-    
+
             preparedStatement.close();
         } catch (SQLException e) {
             resultArea.setText("Error adding employee: " + e.getMessage());
             e.printStackTrace();
         }
     }
-    
-    
 
     private void updateEmployee() {
         // Update employee implementation
