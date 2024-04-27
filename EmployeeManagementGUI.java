@@ -112,44 +112,45 @@ public class EmployeeManagementGUI extends JFrame {
 
     private void performSearch() {
         String searchTerm = searchField.getText().trim();
-
+    
         if (searchTerm.isEmpty()) {
             resultArea.setText("Please enter a search term.");
             return;
         }
     
         try {
-            // Create a PreparedStatement with a parameterized query to avoid SQL injection
-            // String sql = "SELECT * FROM employees WHERE empid LIKE CONCAT('%', ?, '%')";
+            // Decide on a query based on the input type; search by ID or name
             String sql;
-            if (searchTerm.length() == 1 && Character.isDigit(searchTerm.charAt(0))) {
-                // Search for exact matches if the search term is a single digit
+            if (searchTerm.matches("\\d+")) { // Checks if the searchTerm is numeric
                 sql = "SELECT * FROM employees WHERE empid = ?";
             } else {
-                // Use LIKE with wildcards for other search terms
-                sql = "SELECT * FROM employees WHERE empid LIKE CONCAT('%', ?, '%')";
+                // Use LIKE for name searches
+                sql = "SELECT * FROM employees WHERE Fname LIKE CONCAT('%', ?, '%') OR Lname LIKE CONCAT('%', ?, '%')";
             }
-
+    
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, searchTerm);
+            if (!searchTerm.matches("\\d+")) {
+                preparedStatement.setString(2, searchTerm); // Set the second parameter for name search
+            }
     
             // Execute the query
             ResultSet resultSet = preparedStatement.executeQuery();
     
             // Process the results
-            StringBuilder resultText = new StringBuilder();
-            resultText.append("Search results:\n");
-    
+            StringBuilder resultText = new StringBuilder("Search results:\n");
+            boolean found = false;
             while (resultSet.next()) {
                 int id = resultSet.getInt("empid");
-                String name = resultSet.getString("Fname");
-                // Add more columns as needed
+                String fname = resultSet.getString("Fname");
+                String lname = resultSet.getString("Lname");
+                // Add more fields as needed
     
-                resultText.append("ID: ").append(id).append(", Name: ").append(name).append("\n");
-                // Append more columns as needed
+                resultText.append("ID: ").append(id).append(", First Name: ").append(fname).append(", Last Name: ").append(lname).append("\n");
+                found = true;
             }
     
-            if (resultText.length() == 0) {
+            if (!found) {
                 resultText.append("No results found.");
             }
     
@@ -163,6 +164,7 @@ public class EmployeeManagementGUI extends JFrame {
             e.printStackTrace();
         }
     }
+    
 
     private void addEmployee() {
         String fname = addFnameField.getText().trim();
