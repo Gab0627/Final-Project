@@ -10,18 +10,17 @@ import java.sql.*;
 public class EmployeeManagementGUI extends JFrame {
 
     private JTextField searchField;
-    private JTextField addNameField;
-    private JTextField updateNameField;
     private JButton searchButton;
     private JButton addButton;
     private JButton updateButton;
     private JTextArea resultArea;
+    private JTextField updateNameField;
 
     private Connection connection;
-    private JTextComponent addLnameField;
     private JTextComponent addFnameField;
-    private JTextComponent addHireDateField;
+    private JTextComponent addLnameField;
     private JTextComponent addEmailField;
+    private JTextComponent addHireDateField;
     private JTextComponent addSalaryField;
     private JTextComponent addSSNField;
 
@@ -39,14 +38,13 @@ public class EmployeeManagementGUI extends JFrame {
     private void createComponents() {
         // Layout and components setup
         searchField = new JTextField(20);
-        addNameField = new JTextField(20);
+        addFnameField = new JTextField(20);
         updateNameField = new JTextField(20);
-        addFnameField = new JTextField(20); // Add this line
-        addLnameField = new JTextField(20); // Add this line
-        addEmailField = new JTextField(20); // Add this line
-        addHireDateField = new JTextField(20); // Add this line
-        addSalaryField = new JTextField(20); // Add this line
-        addSSNField = new JTextField(20); // Add this line
+        addLnameField = new JTextField(20);
+        addEmailField = new JTextField(20);
+        addHireDateField = new JTextField(20);
+        addSalaryField = new JTextField(20);
+        addSSNField = new JTextField(20);
         searchButton = new JButton("Search");
         addButton = new JButton("Add Employee");
         updateButton = new JButton("Update Employee");
@@ -57,13 +55,24 @@ public class EmployeeManagementGUI extends JFrame {
         add(new JLabel("Search:"));
         add(searchField);
         add(searchButton);
-
-        add(new JLabel("Add Name:"));
-        add(addNameField);
+      
+        add(new JLabel("First Name:"));
+        add(addFnameField);
+        add(new JLabel("Last Name:"));
+        add(addLnameField);
+        add(new JLabel("Email:"));
+        add(addEmailField);
+        add(new JLabel("Hire Date:"));
+        add(addHireDateField);
+        add(new JLabel("Salary:"));
+        add(addSalaryField);
+        add(new JLabel("SSN:"));
+        add(addSSNField);
         add(addButton);
-        add(new JLabel("Update Name:"));
+
         add(updateNameField);
         add(updateButton);
+
         add(new JScrollPane(resultArea));
 
     // //Additional fields for updating employee information
@@ -94,7 +103,7 @@ public class EmployeeManagementGUI extends JFrame {
         try {
             String url = "jdbc:mysql://localhost:3306/employeeData";
             String user = "root";
-            String password = "YourPassHere";
+            String password = "YourPasswordHere";
 
             // Ensure the JDBC driver is loaded
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -123,13 +132,6 @@ public class EmployeeManagementGUI extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 addEmployee();
-            }
-        });
-
-        updateButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                updateEmployee();
             }
         });
     }
@@ -256,16 +258,24 @@ public class EmployeeManagementGUI extends JFrame {
         String lname = addLnameField.getText().trim();
         String email = addEmailField.getText().trim();
         String hireDate = addHireDateField.getText().trim();
-        double salary = Double.parseDouble(addSalaryField.getText().trim());
+        String salaryText = addSalaryField.getText().trim();
         String ssn = addSSNField.getText().trim();
 
-        if (fname.isEmpty() || lname.isEmpty() || email.isEmpty() || hireDate.isEmpty() || ssn.isEmpty()) {
+        if (fname.isEmpty() || lname.isEmpty() || email.isEmpty() || hireDate.isEmpty() || salaryText.isEmpty() || ssn.isEmpty()) {
             resultArea.setText("Please enter all required information for the new employee.");
             return;
         }
-
+      
+        double salary;
         try {
-            String sql = "INSERT INTO employee (Fname, Lname, email, HireDate, Salary, SSN) VALUES (?, ?, ?, ?, ?, ?)";
+            salary = Double.parseDouble(salaryText);
+        } catch (NumberFormatException ex) {
+            resultArea.setText("Please enter a valid salary.");
+            return;
+        }
+      
+        try {
+            String sql = "INSERT INTO employees (Fname, Lname, email, HireDate, Salary, SSN) VALUES (?, ?, ?, ?, ?, ?)";
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, fname);
             preparedStatement.setString(2, lname);
@@ -287,6 +297,7 @@ public class EmployeeManagementGUI extends JFrame {
             e.printStackTrace();
         }
     }
+  
     // Update employee implementation
   
   private void updateEmployee() {
