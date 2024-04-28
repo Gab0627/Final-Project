@@ -24,6 +24,7 @@ public class EmployeeManagementGUI extends JFrame {
     private JTextComponent addSalaryField;
     private JTextComponent addSSNField;
     JComboBox<String> employmentTypeComboBox;
+    private JTextField jobTitleField;
 
     public EmployeeManagementGUI() {
         // Set up the GUI components
@@ -59,6 +60,8 @@ public class EmployeeManagementGUI extends JFrame {
         addHireDateField = new JTextField(20);
         addSalaryField = new JTextField(20);
         addSSNField = new JTextField(20);
+        jobTitleField = new JTextField(20);
+
         addButton = new JButton("Add Employee");
         addPanel.add(new JLabel("First Name:"));
         addPanel.add(addFnameField);
@@ -68,6 +71,10 @@ public class EmployeeManagementGUI extends JFrame {
         addPanel.add(addEmailField);
         addPanel.add(new JLabel("Hire Date:"));
         addPanel.add(addHireDateField);
+
+        addPanel.add(new JLabel("Job Title:"));
+        addPanel.add(jobTitleField);
+
         addPanel.add(new JLabel("Salary:"));
         addPanel.add(addSalaryField);
         addPanel.add(new JLabel("SSN:"));
@@ -264,6 +271,7 @@ public class EmployeeManagementGUI extends JFrame {
         String hireDate = addHireDateField.getText().trim();
         String salaryText = addSalaryField.getText().trim();
         String ssn = addSSNField.getText().trim();
+        String jobTitle = jobTitleField.getText().trim();
         String employmentType = (String) employmentTypeComboBox.getSelectedItem();
     
         if (fname.isEmpty() || lname.isEmpty() || email.isEmpty() || hireDate.isEmpty() || salaryText.isEmpty() || ssn.isEmpty()) {
@@ -281,7 +289,7 @@ public class EmployeeManagementGUI extends JFrame {
     
         try {
             String sql = "INSERT INTO employees (Fname, Lname, email, HireDate, Salary, SSN, employment_type) VALUES (?, ?, ?, ?, ?, ?, ?)";
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             preparedStatement.setString(1, fname);
             preparedStatement.setString(2, lname);
             preparedStatement.setString(3, email);
@@ -291,7 +299,30 @@ public class EmployeeManagementGUI extends JFrame {
             preparedStatement.setString(7, employmentType.toLowerCase().equals("part-time") ? "part_time" : "full_time");
             int rowsAffected = preparedStatement.executeUpdate();
             if (rowsAffected > 0) {
-                resultArea.setText("Employee added successfully.");
+                ResultSet generatedKeys = preparedStatement.getGeneratedKeys();
+                if (generatedKeys.next()) {
+                    int employeeId = generatedKeys.getInt(1);
+    
+                    sql = "SELECT job_title_id FROM job_titles WHERE job_title = ?";
+                    preparedStatement = connection.prepareStatement(sql);
+
+                    preparedStatement.setString(1, jobTitle);
+                    ResultSet resultSet = preparedStatement.executeQuery();
+                    int jobTitleId = -1;
+                    if (resultSet.next()) {
+                        jobTitleId = resultSet.getInt("job_title_id");
+                    }
+    
+                    sql = "INSERT INTO employee_job_titles (empid, job_title_id) VALUES (?, ?)";
+                    preparedStatement = connection.prepareStatement(sql);
+                    preparedStatement.setInt(1, employeeId);
+                    preparedStatement.setInt(2, jobTitleId);
+                    preparedStatement.executeUpdate();
+                    resultArea.setText("Employee added successfully.");
+                } else {
+                    resultArea.setText("Error retrieving generated employee ID.");
+                }
+                
             } else {
                 resultArea.setText("Failed to add employee.");
             }
