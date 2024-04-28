@@ -1,3 +1,4 @@
+
 import javax.swing.*;
 import javax.swing.text.JTextComponent;
 
@@ -7,6 +8,7 @@ import java.awt.event.ActionListener;
 import java.sql.*;
 
 public class EmployeeManagementGUI extends JFrame {
+
     private JTextField searchField;
     private JTextField addNameField;
     private JTextField updateNameField;
@@ -33,7 +35,7 @@ public class EmployeeManagementGUI extends JFrame {
         // Add action listeners for the buttons
         addActionListeners();
     }
-   
+
     private void createComponents() {
         // Layout and components setup
         searchField = new JTextField(20);
@@ -55,7 +57,7 @@ public class EmployeeManagementGUI extends JFrame {
         add(new JLabel("Search:"));
         add(searchField);
         add(searchButton);
-       
+
         add(new JLabel("Add Name:"));
         add(addNameField);
         add(addButton);
@@ -69,7 +71,7 @@ public class EmployeeManagementGUI extends JFrame {
         try {
             String url = "jdbc:mysql://localhost:3306/employeeData";
             String user = "root";
-            String password = "Shwetaben_0627";
+            String password = "Shweta$0627";
 
             // Ensure the JDBC driver is loaded
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -85,7 +87,6 @@ public class EmployeeManagementGUI extends JFrame {
             e.printStackTrace();
         }
     }
-
 
     private void addActionListeners() {
         searchButton.addActionListener(new ActionListener() {
@@ -112,31 +113,62 @@ public class EmployeeManagementGUI extends JFrame {
 
     private void performSearch() {
         String searchTerm = searchField.getText().trim();
-    
+
         if (searchTerm.isEmpty()) {
             resultArea.setText("Please enter a search term.");
             return;
         }
-    
+
         try {
             // Decide on a query based on the input type; search by ID or name
             String sql;
             if (searchTerm.matches("\\d+")) { // Checks if the searchTerm is numeric
-                sql = "SELECT * FROM employees WHERE empid = ?";
-            } else {
+                if (searchTerm.length() == 9) {
+                    // Handle 7-digit SSN (you might need to format or pad it as per your database requirements)
+                    sql = "SELECT * FROM employees "
+                            + "JOIN employee_job_titles ON employees.empid = employee_job_titles.empid "
+                            + "JOIN job_titles ON job_titles.job_title_id = employee_job_titles.job_title_id "
+                            // + "JOIN employee_division ON employees.empid = employee_division.empid "
+                            // + "JOIN division ON division.ID = employee_division.div_ID "
+                            + "WHERE employees.SSN = ?";  // Assuming SSN is stored as 9 digits or formatted accordingly
+                } else {
+                    sql = "SELECT * FROM employees "
+                            + "JOIN employee_job_titles ON employees.empid = employee_job_titles.empid "
+                            + "JOIN job_titles ON job_titles.job_title_id = employee_job_titles.job_title_id "
+                            // + "JOIN employee_division ON employees.empid = employee_division.empid "
+                            // + "JOIN division ON division.ID = employee_division.div_ID "
+                            + "WHERE employees.empid = ?";
+                }
+            } else if (searchTerm.matches("\\d{3}-?\\d{2}-?\\d{4}")) {
+                String formattedSSN = searchTerm.replaceAll("-", "");
+                searchTerm = formattedSSN;
+                sql = "SELECT * FROM employees "
+                        + "JOIN employee_job_titles ON employees.empid = employee_job_titles.empid "
+                        + "JOIN job_titles ON job_titles.job_title_id = employee_job_titles.job_title_id "
+                        // + "JOIN employee_division ON employees.empid = employee_division.empid "
+                        // + "JOIN division ON division.ID = employee_division.div_ID "
+                        + "WHERE employees.SSN = ?";
+            } else if (searchTerm.matches("^[a-zA-Z]+$")) {
                 // Use LIKE for name searches
-                sql = "SELECT * FROM employees WHERE Fname LIKE CONCAT('%', ?, '%') OR Lname LIKE CONCAT('%', ?, '%')";
+                sql = "SELECT * FROM employees "
+                        + "JOIN employee_job_titles ON employees.empid = employee_job_titles.empid "
+                        + "JOIN job_titles ON job_titles.job_title_id = employee_job_titles.job_title_id "
+                        // + "JOIN employee_division ON employees.empid = employee_division.empid "
+                        // + "JOIN division ON division.ID = employee_division.div_ID "
+                        + "WHERE Fname LIKE CONCAT('%', ?, '%') OR Lname LIKE CONCAT('%', ?, '%')";
+            } else {
+                sql = "SELECT * FROM employees WHERE 1 = 0"; // This will return no results
             }
-    
+
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, searchTerm);
             if (!searchTerm.matches("\\d+")) {
                 preparedStatement.setString(2, searchTerm); // Set the second parameter for name search
             }
-    
+
             // Execute the query
             ResultSet resultSet = preparedStatement.executeQuery();
-    
+
             // Process the results
             StringBuilder resultText = new StringBuilder("Search results:\n");
             boolean found = false;
@@ -144,18 +176,49 @@ public class EmployeeManagementGUI extends JFrame {
                 int id = resultSet.getInt("empid");
                 String fname = resultSet.getString("Fname");
                 String lname = resultSet.getString("Lname");
+                String jobTitle = resultSet.getString("job_title");
+                // String division =  resultSet.getString("Name");
+                // String divisionCity =  resultSet.getString("city");
+                // String divisionState =  resultSet.getString("state");
+                // String divisionCountry =  resultSet.getString("country");
+                String email = resultSet.getString("email");
+                // float employeeSalary = resultSet.getFloat("Salary");
+                String SSN = resultSet.getString("SSN");
                 // Add more fields as needed
-    
-                resultText.append("ID: ").append(id).append(", First Name: ").append(fname).append(", Last Name: ").append(lname).append("\n");
+
+                resultText
+                        .append("ID: ")
+                        .append(id)
+                        .append("\nFirst Name: ")
+                        .append(fname)
+                        .append("\nLast Name: ")
+                        .append(lname)
+                        .append("\nTitle: ")
+                        .append(jobTitle)
+                        // .append("\nDivision: ")
+                        // .append(division)
+                        // .append(", ")
+                        // .append(divisionCity)
+                        // .append(", ")
+                        // .append(divisionState)
+                        // .append(", ")
+                        // .append(divisionCountry)
+                        .append("\nEmail: ")
+                        .append(email)
+                        // .append("\nSalary: $")
+                        // .append(employeeSalary)
+                        .append("\nSSN: ")
+                        .append(SSN)
+                        .append("\n\n");
                 found = true;
             }
-    
+
             if (!found) {
                 resultText.append("No results found.");
             }
-    
+
             resultArea.setText(resultText.toString());
-    
+
             // Close the ResultSet and PreparedStatement
             resultSet.close();
             preparedStatement.close();
@@ -164,7 +227,6 @@ public class EmployeeManagementGUI extends JFrame {
             e.printStackTrace();
         }
     }
-    
 
     private void addEmployee() {
         String fname = addFnameField.getText().trim();
@@ -173,13 +235,12 @@ public class EmployeeManagementGUI extends JFrame {
         String hireDate = addHireDateField.getText().trim();
         double salary = Double.parseDouble(addSalaryField.getText().trim());
         String ssn = addSSNField.getText().trim();
-    
+
         if (fname.isEmpty() || lname.isEmpty() || email.isEmpty() || hireDate.isEmpty() || ssn.isEmpty()) {
             resultArea.setText("Please enter all required information for the new employee.");
             return;
         }
-        
-    
+
         try {
             String sql = "INSERT INTO employee (Fname, Lname, email, HireDate, Salary, SSN) VALUES (?, ?, ?, ?, ?, ?)";
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
@@ -189,22 +250,20 @@ public class EmployeeManagementGUI extends JFrame {
             preparedStatement.setString(4, hireDate);
             preparedStatement.setDouble(5, salary);
             preparedStatement.setString(6, ssn);
-    
+
             int rowsAffected = preparedStatement.executeUpdate();
             if (rowsAffected > 0) {
                 resultArea.setText("Employee added successfully.");
             } else {
                 resultArea.setText("Failed to add employee.");
             }
-    
+
             preparedStatement.close();
         } catch (SQLException e) {
             resultArea.setText("Error adding employee: " + e.getMessage());
             e.printStackTrace();
         }
     }
-    
-    
 
     private void updateEmployee() {
         // Update employee implementation
