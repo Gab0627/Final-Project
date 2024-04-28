@@ -135,7 +135,7 @@ public class EmployeeManagementGUI extends JFrame {
         try {
             String url = "jdbc:mysql://localhost:3306/employeeData";
             String user = "root";
-            String password = "Shweta$0627";
+            String password = "YourPasswordHere";
 
             // Ensure the JDBC driver is loaded
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -164,6 +164,13 @@ public class EmployeeManagementGUI extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 addEmployee();
+            }
+        });
+
+        addButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                updateEmployee();
             }
         });
 
@@ -274,9 +281,8 @@ public class EmployeeManagementGUI extends JFrame {
             if (!found) {
                 resultText.append("No results found.");
             }
-
             resultArea.setText(resultText.toString());
-
+            searchField.setText("");
             // Close the ResultSet and PreparedStatement
             resultSet.close();
             preparedStatement.close();
@@ -341,6 +347,7 @@ public class EmployeeManagementGUI extends JFrame {
                     preparedStatement.setInt(2, jobTitleId);
                     preparedStatement.executeUpdate();
                     resultArea.setText("Employee added successfully.");
+                    clearFields();
                 } else {
                     resultArea.setText("Error retrieving generated employee ID.");
                 }
@@ -422,6 +429,17 @@ public class EmployeeManagementGUI extends JFrame {
             resultArea.setText("Error executing search query for update: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    private void clearFields() {
+        addFnameField.setText("");
+        addLnameField.setText("");
+        addEmailField.setText("");
+        jobTitleField.setText("");
+        addHireDateField.setText("");
+        addSalaryField.setText("");
+        addSSNField.setText("");
+
     }
 
     public static void main(String[] args) {
