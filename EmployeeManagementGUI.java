@@ -35,6 +35,12 @@ public class EmployeeManagementGUI extends JFrame {
 
         // Add action listeners for the buttons
         addActionListeners();
+
+        setTitle("Employee Management System");
+        setSize(800, 600);
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setVisible(true);
     }
 
     private void createComponents() {
@@ -99,22 +105,37 @@ public class EmployeeManagementGUI extends JFrame {
         JScrollPane scrollPane = new JScrollPane(resultArea);
         scrollPane.setBorder(BorderFactory.createTitledBorder("Results"));
 
+        //exit button 
+        JButton exitButton = new JButton("Exit");
+        exitButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                System.exit(0);
+            }
+        });
+
+        // Create a control panel for bottom controls like the exit button
+        JPanel controlPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        controlPanel.add(exitButton);
+
         // Adding panels to main panel
         mainPanel.add(searchPanel);
         mainPanel.add(addPanel);
         mainPanel.add(updatePanel);
         mainPanel.add(scrollPane);
+        mainPanel.add(controlPanel);
 
         // Setting the main panel to the JFrame
         setLayout(new BorderLayout());
         add(mainPanel, BorderLayout.CENTER);
+
+        //Remove Employee Frame
     }
 
     private void initializeDBConnection() {
         try {
             String url = "jdbc:mysql://localhost:3306/employeeData";
             String user = "root";
-            String password = "YourPasswordHere";
+            String password = "Shweta$0627";
 
             // Ensure the JDBC driver is loaded
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -145,6 +166,7 @@ public class EmployeeManagementGUI extends JFrame {
                 addEmployee();
             }
         });
+
     }
 
     private void performSearch() {
@@ -273,12 +295,12 @@ public class EmployeeManagementGUI extends JFrame {
         String ssn = addSSNField.getText().trim();
         String jobTitle = jobTitleField.getText().trim();
         String employmentType = (String) employmentTypeComboBox.getSelectedItem();
-    
+
         if (fname.isEmpty() || lname.isEmpty() || email.isEmpty() || hireDate.isEmpty() || salaryText.isEmpty() || ssn.isEmpty()) {
             resultArea.setText("Please enter all required information for the new employee.");
             return;
         }
-    
+
         double salary;
         try {
             salary = Double.parseDouble(salaryText);
@@ -286,7 +308,7 @@ public class EmployeeManagementGUI extends JFrame {
             resultArea.setText("Please enter a valid salary.");
             return;
         }
-    
+
         try {
             String sql = "INSERT INTO employees (Fname, Lname, email, HireDate, Salary, SSN, employment_type) VALUES (?, ?, ?, ?, ?, ?, ?)";
             PreparedStatement preparedStatement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
@@ -302,7 +324,7 @@ public class EmployeeManagementGUI extends JFrame {
                 ResultSet generatedKeys = preparedStatement.getGeneratedKeys();
                 if (generatedKeys.next()) {
                     int employeeId = generatedKeys.getInt(1);
-    
+
                     sql = "SELECT job_title_id FROM job_titles WHERE job_title = ?";
                     preparedStatement = connection.prepareStatement(sql);
 
@@ -312,7 +334,7 @@ public class EmployeeManagementGUI extends JFrame {
                     if (resultSet.next()) {
                         jobTitleId = resultSet.getInt("job_title_id");
                     }
-    
+
                     sql = "INSERT INTO employee_job_titles (empid, job_title_id) VALUES (?, ?)";
                     preparedStatement = connection.prepareStatement(sql);
                     preparedStatement.setInt(1, employeeId);
@@ -322,7 +344,7 @@ public class EmployeeManagementGUI extends JFrame {
                 } else {
                     resultArea.setText("Error retrieving generated employee ID.");
                 }
-                
+
             } else {
                 resultArea.setText("Failed to add employee.");
             }
