@@ -23,6 +23,7 @@ public class EmployeeManagementGUI extends JFrame {
     private JTextComponent addHireDateField;
     private JTextComponent addSalaryField;
     private JTextComponent addSSNField;
+    JComboBox<String> employmentTypeComboBox;
 
     public EmployeeManagementGUI() {
         // Set up the GUI components
@@ -71,6 +72,10 @@ public class EmployeeManagementGUI extends JFrame {
         addPanel.add(addSalaryField);
         addPanel.add(new JLabel("SSN:"));
         addPanel.add(addSSNField);
+        employmentTypeComboBox = new JComboBox<>(new String[]{"Full-time", "Part-time"});
+        addPanel.add(new JLabel("Employment Type:"));
+        addPanel.add(employmentTypeComboBox);
+
         addPanel.add(addButton);
 
         // Update employee panel setup
@@ -102,7 +107,7 @@ public class EmployeeManagementGUI extends JFrame {
         try {
             String url = "jdbc:mysql://localhost:3306/employeeData";
             String user = "root";
-            String password = "Shweta$0627";
+            String password = "YourPasswordHere";
 
             // Ensure the JDBC driver is loaded
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -259,12 +264,13 @@ public class EmployeeManagementGUI extends JFrame {
         String hireDate = addHireDateField.getText().trim();
         String salaryText = addSalaryField.getText().trim();
         String ssn = addSSNField.getText().trim();
-
+        String employmentType = (String) employmentTypeComboBox.getSelectedItem();
+    
         if (fname.isEmpty() || lname.isEmpty() || email.isEmpty() || hireDate.isEmpty() || salaryText.isEmpty() || ssn.isEmpty()) {
             resultArea.setText("Please enter all required information for the new employee.");
             return;
         }
-
+    
         double salary;
         try {
             salary = Double.parseDouble(salaryText);
@@ -272,9 +278,9 @@ public class EmployeeManagementGUI extends JFrame {
             resultArea.setText("Please enter a valid salary.");
             return;
         }
-
+    
         try {
-            String sql = "INSERT INTO employees (Fname, Lname, email, HireDate, Salary, SSN) VALUES (?, ?, ?, ?, ?, ?)";
+            String sql = "INSERT INTO employees (Fname, Lname, email, HireDate, Salary, SSN, employment_type) VALUES (?, ?, ?, ?, ?, ?, ?)";
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, fname);
             preparedStatement.setString(2, lname);
@@ -282,14 +288,13 @@ public class EmployeeManagementGUI extends JFrame {
             preparedStatement.setString(4, hireDate);
             preparedStatement.setDouble(5, salary);
             preparedStatement.setString(6, ssn);
-
+            preparedStatement.setString(7, employmentType.toLowerCase().equals("part-time") ? "part_time" : "full_time");
             int rowsAffected = preparedStatement.executeUpdate();
             if (rowsAffected > 0) {
                 resultArea.setText("Employee added successfully.");
             } else {
                 resultArea.setText("Failed to add employee.");
             }
-
             preparedStatement.close();
         } catch (SQLException e) {
             resultArea.setText("Error adding employee: " + e.getMessage());
