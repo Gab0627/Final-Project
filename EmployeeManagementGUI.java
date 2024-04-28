@@ -65,13 +65,36 @@ public class EmployeeManagementGUI extends JFrame {
         add(updateNameField);
         add(updateButton);
         add(new JScrollPane(resultArea));
+
+    // //Additional fields for updating employee information
+    //     add(new JLabel("New First Name:"));
+    //     add(addFnameField);
+        
+    //     add(new JLabel("New Last Name:"));
+    //     add(addLnameField);
+        
+    //     add(new JLabel("New Email:"));
+    //     add(addEmailField);
+        
+    //     add(new JLabel("New Hire Date:"));
+    //     add(addHireDateField);
+        
+    //     add(new JLabel("New Salary:"));
+    //     add(addSalaryField);
+        
+    //     add(new JLabel("New SSN:"));
+    //     add(addSSNField);
+        
+    //     add(updateButton);
+    //     add(new JScrollPane(resultArea));
     }
+
 
     private void initializeDBConnection() {
         try {
             String url = "jdbc:mysql://localhost:3306/employeeData";
             String user = "root";
-            String password = "Shweta$0627";
+            String password = "YourPassHere";
 
             // Ensure the JDBC driver is loaded
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -264,11 +287,75 @@ public class EmployeeManagementGUI extends JFrame {
             e.printStackTrace();
         }
     }
-
-    private void updateEmployee() {
-        // Update employee implementation
+    // Update employee implementation
+  
+  private void updateEmployee() {
+    String updateName = updateNameField.getText().trim();
+    
+    if (updateName.isEmpty()) {
+        resultArea.setText("Please enter the name of the employee you want to update.");
+        return;
     }
 
+    try {
+        // Create a PreparedStatement with a parameterized query to avoid SQL injection
+        String sql = "SELECT * FROM employees WHERE Fname LIKE CONCAT('%', ?, '%') OR Lname LIKE CONCAT('%', ?, '%')";
+        PreparedStatement preparedStatement = connection.prepareStatement(sql);
+        preparedStatement.setString(1, updateName);
+        preparedStatement.setString(2, updateName);
+
+        // Execute the query
+        ResultSet resultSet = preparedStatement.executeQuery();
+
+        // Process the results
+        StringBuilder resultText = new StringBuilder();
+        resultText.append("Search results for updating:\n");
+
+        while (resultSet.next()) {
+            int id = resultSet.getInt("empid");
+            String name = resultSet.getString("Fname");
+            String lname = resultSet.getString("Lname");
+            String email = resultSet.getString("email");
+            String hireDate = resultSet.getString("hiredate");
+            double salary = resultSet.getDouble("salary");
+
+            // Display current employee information
+            resultText.append("ID: ").append(id).append(", Name: ").append(name).append(" ").append(lname).append("\n");
+            resultText.append("Email: ").append(email).append("\n");
+            resultText.append("Hire Date: ").append(hireDate).append("\n");
+            resultText.append("Salary: ").append(salary).append("\n");
+
+            // Provide editable fields for updating employee information
+            JTextField newNameField = new JTextField(name, 20);
+            JTextField newLnameField = new JTextField(lname, 20);
+            JTextField newEmailField = new JTextField(email, 20);
+            JTextField newHireDateField = new JTextField(hireDate, 20);
+            JTextField newSalaryField = new JTextField(String.valueOf(salary), 20);
+
+            // Display editable fields
+            //error still need to work on these cannot edit gui not sure why 
+            resultText.append("Enter new information:\n");
+            resultText.append("New First Name: ").append(newNameField.getText()).append("\n");
+            resultText.append("New Last Name: ").append(newLnameField.getText()).append("\n");
+            resultText.append("New Email: ").append(newEmailField.getText()).append("\n");
+            resultText.append("New Hire Date: ").append(newHireDateField.getText()).append("\n");
+            resultText.append("New Salary: ").append(newSalaryField.getText()).append("\n");
+        }
+
+        if (resultText.length() == 0) {
+            resultText.append("No matching employee found for updating.");
+        }
+
+        resultArea.setText(resultText.toString());
+
+        // Close the ResultSet and PreparedStatement
+        resultSet.close();
+        preparedStatement.close();
+    } catch (SQLException e) {
+        resultArea.setText("Error executing search query for update: " + e.getMessage());
+        e.printStackTrace();
+    }
+}
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {

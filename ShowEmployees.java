@@ -5,7 +5,7 @@ public class ShowEmployees {
     public static void main(String[] args)  {
         String url = "jdbc:mysql://localhost:3306/employeeData";
         String user = "root";
-        String password = "Shwetaben_0627";
+        String password = "chin";
         StringBuilder output = new StringBuilder( "" );
         String sqlcommand = "SELECT e.Fname, e.Lname, e.email, jt.job_title, p.pay_date, p.earnings, "+
                 "p.fed_tax, p.fed_med, p.fed_SS, p.state_tax, p.retire_401k, p.health_care " + 
