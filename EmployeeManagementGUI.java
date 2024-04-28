@@ -186,7 +186,7 @@ public class EmployeeManagementGUI extends JFrame {
         try {
             String url = "jdbc:mysql://localhost:3306/employeeData";
             String user = "root";
-            String password = "YourPasswordHere";
+            String password = "Pword";
 
             // Ensure the JDBC driver is loaded
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -215,13 +215,6 @@ public class EmployeeManagementGUI extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 addEmployee();
-            }
-        });
-
-        addButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                updateEmployee();
             }
         });
 
@@ -399,7 +392,6 @@ public class EmployeeManagementGUI extends JFrame {
                     preparedStatement.setInt(2, jobTitleId);
                     preparedStatement.executeUpdate();
                     resultArea.setText("Employee added successfully.");
-                    clearFields();
                 } else {
                     resultArea.setText("Error retrieving generated employee ID.");
                 }
@@ -489,17 +481,6 @@ public class EmployeeManagementGUI extends JFrame {
         } catch (NumberFormatException e) {
             resultArea.setText("Employee ID must be a valid number.");
         }
-    }
-
-    private void clearFields() {
-        addFnameField.setText("");
-        addLnameField.setText("");
-        addEmailField.setText("");
-        jobTitleField.setText("");
-        addHireDateField.setText("");
-        addSalaryField.setText("");
-        addSSNField.setText("");
-
     }
 
     public static void main(String[] args) {
