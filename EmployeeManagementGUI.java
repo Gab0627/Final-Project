@@ -36,74 +36,73 @@ public class EmployeeManagementGUI extends JFrame {
     }
 
     private void createComponents() {
-        // Layout and components setup
+        // Main panel setup
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        // Search panel setup
+        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         searchField = new JTextField(20);
+        searchButton = new JButton("Search");
+        searchPanel.add(new JLabel("Search:"));
+        searchPanel.add(searchField);
+        searchPanel.add(searchButton);
+
+        // Add employee panel setup
+        JPanel addPanel = new JPanel(new GridLayout(0, 2, 5, 5));
+        addPanel.setBorder(BorderFactory.createTitledBorder("Add Employee"));
         addFnameField = new JTextField(20);
-        updateNameField = new JTextField(20);
         addLnameField = new JTextField(20);
         addEmailField = new JTextField(20);
         addHireDateField = new JTextField(20);
         addSalaryField = new JTextField(20);
         addSSNField = new JTextField(20);
-        searchButton = new JButton("Search");
         addButton = new JButton("Add Employee");
+        addPanel.add(new JLabel("First Name:"));
+        addPanel.add(addFnameField);
+        addPanel.add(new JLabel("Last Name:"));
+        addPanel.add(addLnameField);
+        addPanel.add(new JLabel("Email:"));
+        addPanel.add(addEmailField);
+        addPanel.add(new JLabel("Hire Date:"));
+        addPanel.add(addHireDateField);
+        addPanel.add(new JLabel("Salary:"));
+        addPanel.add(addSalaryField);
+        addPanel.add(new JLabel("SSN:"));
+        addPanel.add(addSSNField);
+        addPanel.add(addButton);
+
+        // Update employee panel setup
+        JPanel updatePanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        updateNameField = new JTextField(20);
         updateButton = new JButton("Update Employee");
-        resultArea = new JTextArea(20, 50);
+        updatePanel.add(new JLabel("Update Name:"));
+        updatePanel.add(updateNameField);
+        updatePanel.add(updateButton);
+
+        // Result area setup
+        resultArea = new JTextArea(10, 50);
         resultArea.setEditable(false);
+        JScrollPane scrollPane = new JScrollPane(resultArea);
+        scrollPane.setBorder(BorderFactory.createTitledBorder("Results"));
 
-        setLayout(new FlowLayout());
-        add(new JLabel("Search:"));
-        add(searchField);
-        add(searchButton);
-      
-        add(new JLabel("First Name:"));
-        add(addFnameField);
-        add(new JLabel("Last Name:"));
-        add(addLnameField);
-        add(new JLabel("Email:"));
-        add(addEmailField);
-        add(new JLabel("Hire Date:"));
-        add(addHireDateField);
-        add(new JLabel("Salary:"));
-        add(addSalaryField);
-        add(new JLabel("SSN:"));
-        add(addSSNField);
-        add(addButton);
+        // Adding panels to main panel
+        mainPanel.add(searchPanel);
+        mainPanel.add(addPanel);
+        mainPanel.add(updatePanel);
+        mainPanel.add(scrollPane);
 
-        add(updateNameField);
-        add(updateButton);
-
-        add(new JScrollPane(resultArea));
-
-    // //Additional fields for updating employee information
-    //     add(new JLabel("New First Name:"));
-    //     add(addFnameField);
-        
-    //     add(new JLabel("New Last Name:"));
-    //     add(addLnameField);
-        
-    //     add(new JLabel("New Email:"));
-    //     add(addEmailField);
-        
-    //     add(new JLabel("New Hire Date:"));
-    //     add(addHireDateField);
-        
-    //     add(new JLabel("New Salary:"));
-    //     add(addSalaryField);
-        
-    //     add(new JLabel("New SSN:"));
-    //     add(addSSNField);
-        
-    //     add(updateButton);
-    //     add(new JScrollPane(resultArea));
+        // Setting the main panel to the JFrame
+        setLayout(new BorderLayout());
+        add(mainPanel, BorderLayout.CENTER);
     }
-
 
     private void initializeDBConnection() {
         try {
             String url = "jdbc:mysql://localhost:3306/employeeData";
             String user = "root";
-            String password = "YourPasswordHere";
+            String password = "Shweta$0627";
 
             // Ensure the JDBC driver is loaded
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -151,15 +150,15 @@ public class EmployeeManagementGUI extends JFrame {
                 if (searchTerm.length() == 9) {
                     // Handle 7-digit SSN (you might need to format or pad it as per your database requirements)
                     sql = "SELECT * FROM employees "
-                            + "JOIN employee_job_titles ON employees.empid = employee_job_titles.empid "
-                            + "JOIN job_titles ON job_titles.job_title_id = employee_job_titles.job_title_id "
+                            // + "JOIN employee_job_titles ON employees.empid = employee_job_titles.empid "
+                            // + "JOIN job_titles ON job_titles.job_title_id = employee_job_titles.job_title_id "
                             // + "JOIN employee_division ON employees.empid = employee_division.empid "
                             // + "JOIN division ON division.ID = employee_division.div_ID "
                             + "WHERE employees.SSN = ?";  // Assuming SSN is stored as 9 digits or formatted accordingly
                 } else {
                     sql = "SELECT * FROM employees "
-                            + "JOIN employee_job_titles ON employees.empid = employee_job_titles.empid "
-                            + "JOIN job_titles ON job_titles.job_title_id = employee_job_titles.job_title_id "
+                            // + "JOIN employee_job_titles ON employees.empid = employee_job_titles.empid "
+                            // + "JOIN job_titles ON job_titles.job_title_id = employee_job_titles.job_title_id "
                             // + "JOIN employee_division ON employees.empid = employee_division.empid "
                             // + "JOIN division ON division.ID = employee_division.div_ID "
                             + "WHERE employees.empid = ?";
@@ -168,16 +167,16 @@ public class EmployeeManagementGUI extends JFrame {
                 String formattedSSN = searchTerm.replaceAll("-", "");
                 searchTerm = formattedSSN;
                 sql = "SELECT * FROM employees "
-                        + "JOIN employee_job_titles ON employees.empid = employee_job_titles.empid "
-                        + "JOIN job_titles ON job_titles.job_title_id = employee_job_titles.job_title_id "
+                        // + "JOIN employee_job_titles ON employees.empid = employee_job_titles.empid "
+                        // + "JOIN job_titles ON job_titles.job_title_id = employee_job_titles.job_title_id "
                         // + "JOIN employee_division ON employees.empid = employee_division.empid "
                         // + "JOIN division ON division.ID = employee_division.div_ID "
                         + "WHERE employees.SSN = ?";
             } else if (searchTerm.matches("^[a-zA-Z]+$")) {
                 // Use LIKE for name searches
                 sql = "SELECT * FROM employees "
-                        + "JOIN employee_job_titles ON employees.empid = employee_job_titles.empid "
-                        + "JOIN job_titles ON job_titles.job_title_id = employee_job_titles.job_title_id "
+                        // + "JOIN employee_job_titles ON employees.empid = employee_job_titles.empid "
+                        // + "JOIN job_titles ON job_titles.job_title_id = employee_job_titles.job_title_id "
                         // + "JOIN employee_division ON employees.empid = employee_division.empid "
                         // + "JOIN division ON division.ID = employee_division.div_ID "
                         + "WHERE Fname LIKE CONCAT('%', ?, '%') OR Lname LIKE CONCAT('%', ?, '%')";
@@ -201,7 +200,7 @@ public class EmployeeManagementGUI extends JFrame {
                 int id = resultSet.getInt("empid");
                 String fname = resultSet.getString("Fname");
                 String lname = resultSet.getString("Lname");
-                String jobTitle = resultSet.getString("job_title");
+                // String jobTitle = resultSet.getString("job_title");
                 // String division =  resultSet.getString("Name");
                 // String divisionCity =  resultSet.getString("city");
                 // String divisionState =  resultSet.getString("state");
@@ -218,8 +217,8 @@ public class EmployeeManagementGUI extends JFrame {
                         .append(fname)
                         .append("\nLast Name: ")
                         .append(lname)
-                        .append("\nTitle: ")
-                        .append(jobTitle)
+                        // .append("\nTitle: ")
+                        // .append(jobTitle)
                         // .append("\nDivision: ")
                         // .append(division)
                         // .append(", ")
@@ -265,7 +264,7 @@ public class EmployeeManagementGUI extends JFrame {
             resultArea.setText("Please enter all required information for the new employee.");
             return;
         }
-      
+
         double salary;
         try {
             salary = Double.parseDouble(salaryText);
@@ -273,7 +272,7 @@ public class EmployeeManagementGUI extends JFrame {
             resultArea.setText("Please enter a valid salary.");
             return;
         }
-      
+
         try {
             String sql = "INSERT INTO employees (Fname, Lname, email, HireDate, Salary, SSN) VALUES (?, ?, ?, ?, ?, ?)";
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
@@ -297,76 +296,76 @@ public class EmployeeManagementGUI extends JFrame {
             e.printStackTrace();
         }
     }
-  
+
     // Update employee implementation
-  
-  private void updateEmployee() {
-    String updateName = updateNameField.getText().trim();
-    
-    if (updateName.isEmpty()) {
-        resultArea.setText("Please enter the name of the employee you want to update.");
-        return;
-    }
+    private void updateEmployee() {
+        String updateName = updateNameField.getText().trim();
 
-    try {
-        // Create a PreparedStatement with a parameterized query to avoid SQL injection
-        String sql = "SELECT * FROM employees WHERE Fname LIKE CONCAT('%', ?, '%') OR Lname LIKE CONCAT('%', ?, '%')";
-        PreparedStatement preparedStatement = connection.prepareStatement(sql);
-        preparedStatement.setString(1, updateName);
-        preparedStatement.setString(2, updateName);
-
-        // Execute the query
-        ResultSet resultSet = preparedStatement.executeQuery();
-
-        // Process the results
-        StringBuilder resultText = new StringBuilder();
-        resultText.append("Search results for updating:\n");
-
-        while (resultSet.next()) {
-            int id = resultSet.getInt("empid");
-            String name = resultSet.getString("Fname");
-            String lname = resultSet.getString("Lname");
-            String email = resultSet.getString("email");
-            String hireDate = resultSet.getString("hiredate");
-            double salary = resultSet.getDouble("salary");
-
-            // Display current employee information
-            resultText.append("ID: ").append(id).append(", Name: ").append(name).append(" ").append(lname).append("\n");
-            resultText.append("Email: ").append(email).append("\n");
-            resultText.append("Hire Date: ").append(hireDate).append("\n");
-            resultText.append("Salary: ").append(salary).append("\n");
-
-            // Provide editable fields for updating employee information
-            JTextField newNameField = new JTextField(name, 20);
-            JTextField newLnameField = new JTextField(lname, 20);
-            JTextField newEmailField = new JTextField(email, 20);
-            JTextField newHireDateField = new JTextField(hireDate, 20);
-            JTextField newSalaryField = new JTextField(String.valueOf(salary), 20);
-
-            // Display editable fields
-            //error still need to work on these cannot edit gui not sure why 
-            resultText.append("Enter new information:\n");
-            resultText.append("New First Name: ").append(newNameField.getText()).append("\n");
-            resultText.append("New Last Name: ").append(newLnameField.getText()).append("\n");
-            resultText.append("New Email: ").append(newEmailField.getText()).append("\n");
-            resultText.append("New Hire Date: ").append(newHireDateField.getText()).append("\n");
-            resultText.append("New Salary: ").append(newSalaryField.getText()).append("\n");
+        if (updateName.isEmpty()) {
+            resultArea.setText("Please enter the name of the employee you want to update.");
+            return;
         }
 
-        if (resultText.length() == 0) {
-            resultText.append("No matching employee found for updating.");
+        try {
+            // Create a PreparedStatement with a parameterized query to avoid SQL injection
+            String sql = "SELECT * FROM employees WHERE Fname LIKE CONCAT('%', ?, '%') OR Lname LIKE CONCAT('%', ?, '%')";
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setString(1, updateName);
+            preparedStatement.setString(2, updateName);
+
+            // Execute the query
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            // Process the results
+            StringBuilder resultText = new StringBuilder();
+            resultText.append("Search results for updating:\n");
+
+            while (resultSet.next()) {
+                int id = resultSet.getInt("empid");
+                String name = resultSet.getString("Fname");
+                String lname = resultSet.getString("Lname");
+                String email = resultSet.getString("email");
+                String hireDate = resultSet.getString("hiredate");
+                double salary = resultSet.getDouble("salary");
+
+                // Display current employee information
+                resultText.append("ID: ").append(id).append(", Name: ").append(name).append(" ").append(lname).append("\n");
+                resultText.append("Email: ").append(email).append("\n");
+                resultText.append("Hire Date: ").append(hireDate).append("\n");
+                resultText.append("Salary: ").append(salary).append("\n");
+
+                // Provide editable fields for updating employee information
+                JTextField newNameField = new JTextField(name, 20);
+                JTextField newLnameField = new JTextField(lname, 20);
+                JTextField newEmailField = new JTextField(email, 20);
+                JTextField newHireDateField = new JTextField(hireDate, 20);
+                JTextField newSalaryField = new JTextField(String.valueOf(salary), 20);
+
+                // Display editable fields
+                //error still need to work on these cannot edit gui not sure why 
+                resultText.append("Enter new information:\n");
+                resultText.append("New First Name: ").append(newNameField.getText()).append("\n");
+                resultText.append("New Last Name: ").append(newLnameField.getText()).append("\n");
+                resultText.append("New Email: ").append(newEmailField.getText()).append("\n");
+                resultText.append("New Hire Date: ").append(newHireDateField.getText()).append("\n");
+                resultText.append("New Salary: ").append(newSalaryField.getText()).append("\n");
+            }
+
+            if (resultText.length() == 0) {
+                resultText.append("No matching employee found for updating.");
+            }
+
+            resultArea.setText(resultText.toString());
+
+            // Close the ResultSet and PreparedStatement
+            resultSet.close();
+            preparedStatement.close();
+        } catch (SQLException e) {
+            resultArea.setText("Error executing search query for update: " + e.getMessage());
+            e.printStackTrace();
         }
-
-        resultArea.setText(resultText.toString());
-
-        // Close the ResultSet and PreparedStatement
-        resultSet.close();
-        preparedStatement.close();
-    } catch (SQLException e) {
-        resultArea.setText("Error executing search query for update: " + e.getMessage());
-        e.printStackTrace();
     }
-}
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
