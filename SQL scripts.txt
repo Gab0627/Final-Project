@@ -1,0 +1,178 @@
+
+/ Add SSN column to employees table /
+
+USE employeeData;
+
+ALTER TABLE employees 
+ADD SSN VARCHAR(11);
+
+/ Create full_time table /
+
+USE employeeData; 
+
+CREATE TABLE full_time (
+  
+  FOREIGN KEY (empid) REFERENCES employees(empid)
+  FOREIGN KEY 
+);
+
+CREATE TABLE payroll (
+  payID INT,
+  pay_date DATE,
+  earnings DECIMAL(8,2),
+  fed_tax DECIMAL(7,2),
+  fed_med DECIMAL(7,2),
+  fed_SS DECIMAL(7,2),
+  state_tax DECIMAL(7,2),
+  retire_401k DECIMAL(7,2),
+  health_care DECIMAL(7,2),
+  empid INT,
+  INDEX payID_IDX (payID),
+  INDEX emp_indx (empid),
+  FOREIGN KEY (empid) REFERENCES employees(empid)
+);
+
+/ Create part_time table / 
+
+use employeeData; 
+
+CREATE TABLE part_time (
+  payID INT,
+  pay_date DATE,
+  hourly_wage DECIMAL(4,2),
+  earnings DECIMAL(8,2),
+  fed_tax DECIMAL(7,2),
+  fed_med DECIMAL(7,2),
+  fed_SS DECIMAL(7,2),
+  state_tax DECIMAL(7,2),
+  empid INT,
+  INDEX payID_IDX (payID),
+  INDEX emp_indx (empid),
+  FOREIGN KEY (empid) REFERENCES employees(empid)
+);
+
+
+/ Create employee_demo table / 
+
+USE employeeData;
+
+CREATE TABLE employee_demo (
+  empid int NOT NULL,
+  gender varchar(50),
+  pronouns varchar(50),
+  race varchar(50),
+  DOB date,
+  contact int NOT NULL,
+  FOREIGN KEY (empid) REFERENCES employees(empid)
+  ); 
+
+/ Create city table /
+
+USE employeeData;
+
+CREATE TABLE city (
+  city_ID int NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  city_name varchar(100) NOT NULL
+); 
+
+/ Create state table /
+
+CREATE TABLE state (
+  state_ID int NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  state_name varchar(100) NOT NULL
+); 
+
+/ Drop unnecessary columns for address table / 
+
+use employeeData;
+
+ALTER TABLE address
+DROP COLUMN gender;
+
+ALTER TABLE address
+DROP COLUMN pronouns;
+
+ALTER TABLE address
+DROP COLUMN race;
+
+ALTER TABLE address
+DROP COLUMN DOB;
+
+ALTER TABLE address
+DROP COLUMN contact;
+
+/ Create address table / 
+
+CREATE TABLE address (
+  empid int NOT NULL AUTO_INCREMENT PRIMARY KEY,
+  gender varchar(50),
+  pronouns varchar(50),
+  race varchar(50),
+  DOB date,
+  contact int NOT NULL,
+  address varchar(100) NOT NULL,
+  city_ID int NOT NULL, 
+  state_ID int NOT NULL,
+  FOREIGN KEY (empid) REFERENCES employees(empid),
+  FOREIGN KEY (city_ID) REFERENCES city(city_ID),
+  FOREIGN KEY (state_ID) REFERENCES state(state_ID)
+); 
+
+/ ************************************************** /
+
+USE employeeData;
+
+ALTER TABLE employees
+ADD COLUMN employment_type ENUM('full_time', 'part_time') NOT NULL DEFAULT 'full_time';
+
+DELIMITER $$
+
+CREATE TRIGGER Before_Insert_PartTime
+BEFORE INSERT ON part_time
+FOR EACH ROW
+BEGIN
+  DECLARE employee_type CHAR(10);
+  SELECT employment_type INTO employee_type FROM employees WHERE empid = NEW.empid;
+  IF employee_type <> 'part_time' THEN
+    SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'Cannot add part-time pay details for a non-part-time employee';
+  END IF;
+END$$
+
+DELIMITER ;
+
+/ Make health care .002% of base salary /
+
+use employeeData;
+
+ALTER TABLE payroll
+DROP COLUMN health_care;
+
+-- Add the health_care column to the payroll table
+ALTER TABLE payroll 
+ADD health_care DECIMAL(8,2);
+
+-- Update the health_care column based on the salary from the employees table
+UPDATE payroll
+SET health_care = (SELECT salary * 0.00002 FROM employees WHERE employees.empid = payroll.empid);
+
+
+/ Fix 401k column / 
+
+USE employeeData;
+
+ALTER TABLE payroll
+DROP COLUMN retire_401k;
+
+-- Add the retire_401k column with default value
+ALTER TABLE payroll
+ADD retire_401k DECIMAL(7,2) DEFAULT 0.00;
+
+-- Update existing rows with correct retire_401k values
+UPDATE payroll
+SET retire_401k = (SELECT (salary/52.0)*0.004 FROM employees WHERE employees.empid = payroll.empid);
+
+-- Insert missing rows for employees without payroll entries
+INSERT INTO payroll (empid, retire_401k)
+SELECT empid, (salary/52.0)*0.004
+FROM employees
+WHERE empid NOT IN (SELECT empid FROM payroll);
